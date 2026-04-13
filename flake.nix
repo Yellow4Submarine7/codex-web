@@ -61,8 +61,8 @@
           };
 
           src = pkgs.fetchurl {
-            url = "https://persistent.oaistatic.com/codex-app-prod/Codex-darwin-arm64-26.318.11754.zip";
-            hash = "sha256-I9lgC61QrvyL/iQ7PACcNLsiO72P6oQSqvUXxtRy2aM=";
+            url = "https://persistent.oaistatic.com/codex-app-prod/Codex-darwin-arm64-26.409.20454.zip";
+            hash = "sha256-J1xOgVwwXWIcU80Nwqg3xhQxQLHuuDPjpTGlhU2SybQ=";
           };
 
           extractCodex = pkgs.writeShellScriptBin "extract-codex" ''
