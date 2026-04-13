@@ -31,5 +31,6 @@
   ["r3v_85", "nodeEventsModule"],
   ["r3v_86", "diagnosticsChannelModule"],
   ["r3v_88", "nodeWorkerThreadsModule"],
-  ["r3v_89", "nodeHttpModule"]
+  ["r3v_89", "nodeHttpModule"],
+  ["r3v_8104", "AppServerConnectionRegistry"]
 ]
