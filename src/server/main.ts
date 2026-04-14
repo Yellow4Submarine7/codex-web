@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import Module from "node:module";
 import path from "node:path";
 import { parseArgs as parseCliArgs } from "node:util";
 import { WebSocket, WebSocketServer } from "ws";
+import { installModuleAliasHook } from "./module";
 
 type ServerOptions = {
   host: string;
@@ -151,76 +151,6 @@ function ensureElectronLikeProcessContext(): void {
   processWithElectronFields.type ??= "browser";
 }
 
-let moduleAliasHookInstalled = false;
-
-function installModuleAliasHook(): void {
-  if (moduleAliasHookInstalled) {
-    return;
-  }
-
-  const moduleWithLoad = Module as typeof Module & {
-    _load: (
-      request: string,
-      parent: NodeModule | undefined,
-      isMain: boolean,
-    ) => unknown;
-  };
-  const originalLoad = moduleWithLoad._load;
-
-  moduleWithLoad._load = function moduleAliasLoad(
-    request: string,
-    parent: NodeModule | undefined,
-    isMain: boolean,
-  ): unknown {
-    if (request === "electron") {
-      return originalLoad.call(this, path.resolve(
-        path.resolve(__dirname, "../.."),
-        "src/server/electron/index.js",
-      ), parent, isMain);
-    }
-
-    return originalLoad.call(this, request, parent, isMain);
-  };
-
-  moduleAliasHookInstalled = true;
-}
-
-function loadMainBridgeModule(): void {
-  ensureElectronLikeProcessContext();
-  installModuleAliasHook();
-
-  void Promise.resolve()
-    .then(() => require(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-1fsOo4Rt.js")) as unknown)
-    .then(async (moduleNamespace: unknown) => {
-      console.log(`Loaded main bridge module: ${(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-1fsOo4Rt.js"))}`);
-
-      const maybeRecord = moduleNamespace as Record<string, unknown>;
-      const runMainAppStartup =
-        (typeof maybeRecord.runMainAppStartup === "function"
-          ? maybeRecord.runMainAppStartup
-          : undefined) ??
-        (typeof (maybeRecord.default as Record<string, unknown> | undefined)
-          ?.runMainAppStartup === "function"
-          ? ((maybeRecord.default as Record<string, unknown>)
-              .runMainAppStartup as (...args: unknown[]) => unknown)
-          : undefined);
-
-      if (!runMainAppStartup) {
-        console.warn(
-          "Main bridge module does not export runMainAppStartup; skipped startup call.",
-        );
-        return;
-      }
-
-      console.log("Invoking runMainAppStartup from main bridge module...");
-      await Promise.resolve(runMainAppStartup());
-      console.log("runMainAppStartup completed.");
-    })
-    .catch((error: unknown) => {
-      console.error(`Failed to load main bridge module: ${(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-1fsOo4Rt.js"))}`);
-      console.error(error);
-    });
-}
 
 function startIpcBridgeServer(
   options: ServerOptions,
@@ -306,7 +236,11 @@ function startIpcBridgeServer(
     console.log(
       `IPC bridge listening at ws://${options.host}:${options.port}${IPC_BRIDGE_PATH}`,
     );
-    loadMainBridgeModule();
+    ensureElectronLikeProcessContext();
+    installModuleAliasHook();
+
+    const module = require(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-1fsOo4Rt.js"));
+    module.runMainAppStartup();
   });
 }
 
