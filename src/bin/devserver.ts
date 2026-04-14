@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import { pathToFileURL } from "node:url";
 
 type ServerOptions = {
   rootDir: string;
@@ -32,6 +33,10 @@ const MIME_TYPES: Record<string, string> = {
 
 const BRIDGE_MODULE_RELATIVE_PATH = "assets/dev-bridge.js";
 const BRIDGE_MODULE_SCRIPT_TAG = `<script type="module" src="./${BRIDGE_MODULE_RELATIVE_PATH}"></script>`;
+const MAIN_BRIDGE_PATH = path.resolve(
+  process.cwd(),
+  "scratch/asar/.vite/build/dev-main.js",
+);
 
 function printUsage(): void {
   console.log(
@@ -251,6 +256,66 @@ function createHandler(options: ServerOptions) {
   };
 }
 
+function ensureElectronLikeProcessContext(): void {
+  const versions = process.versions as NodeJS.ProcessVersions & {
+    electron?: string;
+  };
+  if (!versions.electron) {
+    Object.defineProperty(versions, "electron", {
+      value: "41.2.0",
+      configurable: true,
+      enumerable: true,
+      writable: false,
+    });
+  }
+
+  const processWithElectronFields = process as NodeJS.Process & {
+    resourcesPath?: string;
+    type?: string;
+  };
+  processWithElectronFields.resourcesPath ??= path.resolve(
+    process.cwd(),
+    "scratch/asar",
+  );
+  processWithElectronFields.type ??= "browser";
+}
+
+function loadMainBridgeModule(modulePath: string): void {
+  ensureElectronLikeProcessContext();
+
+  const moduleUrl = pathToFileURL(modulePath).href;
+  void import(moduleUrl)
+    .then(async (moduleNamespace: unknown) => {
+      console.log(`Loaded main bridge module: ${modulePath}`);
+
+      const maybeRecord = moduleNamespace as Record<string, unknown>;
+      const runMainAppStartup =
+        (typeof maybeRecord.runMainAppStartup === "function"
+          ? maybeRecord.runMainAppStartup
+          : undefined) ??
+        (typeof (maybeRecord.default as Record<string, unknown> | undefined)
+          ?.runMainAppStartup === "function"
+          ? ((maybeRecord.default as Record<string, unknown>)
+              .runMainAppStartup as (...args: unknown[]) => unknown)
+          : undefined);
+
+      if (!runMainAppStartup) {
+        console.warn(
+          "Main bridge module does not export runMainAppStartup; skipped startup call.",
+        );
+        return;
+      }
+
+      console.log("Invoking runMainAppStartup from main bridge module...");
+      await Promise.resolve(runMainAppStartup());
+      console.log("runMainAppStartup completed.");
+    })
+    .catch((error: unknown) => {
+      console.error(`Failed to load main bridge module: ${modulePath}`);
+      console.error(error);
+    });
+}
+
 function main(args: string[]): void {
   const options = parseArgs(args);
 
@@ -268,11 +333,19 @@ function main(args: string[]): void {
       `Bridge module not found: ${bridgeModulePath}. Run 'yarn build:bridge' first.`,
     );
   }
+  const mainBridgeStat = statIfExists(MAIN_BRIDGE_PATH);
+  if (!mainBridgeStat?.isFile()) {
+    throw new Error(
+      `Main bridge module not found: ${MAIN_BRIDGE_PATH}. Run 'yarn build:main-bridge' first.`,
+    );
+  }
 
   const server = http.createServer(createHandler(options));
   server.listen(options.port, options.host, () => {
     console.log(`Serving: ${options.rootDir}`);
     console.log(`URL: http://${options.host}:${options.port}`);
+    console.log(`Main bridge ready: ${MAIN_BRIDGE_PATH}`);
+    loadMainBridgeModule(MAIN_BRIDGE_PATH);
   });
 }
 

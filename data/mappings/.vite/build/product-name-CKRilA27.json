@@ -32,5 +32,11 @@
   ["r3v_86", "diagnosticsChannelModule"],
   ["r3v_88", "nodeWorkerThreadsModule"],
   ["r3v_89", "nodeHttpModule"],
+  ["r3v_3997", "desktopSentryDsn"],
+  ["r3v_29052", "createSentryIpcNamespaceCodec"],
+  ["r3v_29941", "setupSentryIpcModes"],
+  ["r3v_29975", "initSentryElectronSdk"],
+  ["r3v_29997", "desktopSentryInitOptions"],
+  ["r3v_29998", "initializeDesktopSentry"],
   ["r3v_8104", "AppServerConnectionRegistry"]
 ]

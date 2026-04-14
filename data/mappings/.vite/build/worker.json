@@ -27,5 +27,10 @@
   ["r3v_81", "nodeStringDecoderModule"],
   ["r3v_82", "nodeProcessModule"],
   ["r3v_84", "nodeBufferModule"],
-  ["r3v_85", "nodeFsPromisesModule"]
+  ["r3v_85", "nodeFsPromisesModule"],
+  ["r3v_14171", "workerSentryDsn"],
+  ["r3v_14172", "formatWorkerSentryRelease"],
+  ["r3v_23542", "workerSentryRewriteFramesPrefix"],
+  ["r3v_23543", "initializeWorkerSentry"],
+  ["r3v_23546", "initializeWorkerSentryInternal"]
 ]

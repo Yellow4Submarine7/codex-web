@@ -5,11 +5,12 @@
   "scripts": {
     "attach-anchors": "tsx src/bin/attachAnchors.ts",
     "build:bridge": "vite build --config vite.bridge.config.ts",
+    "build:main-bridge": "vite build --config vite.main.config.ts",
     "launch:unpacked:server": "http-server ./scratch/asar/webview -a localhost -p 5175 -c-1",
     "launch:unpacked": "NODE_ENV=development CODEX_CLI_PATH=$(which codex) electron ./scratch/asar",
-    "predevserver": "yarn build:bridge",
+    "predevserver": "yarn build:bridge && yarn build:main-bridge",
     "replace-anchors": "tsx src/bin/replaceAnchors.ts",
-    "devserver": "tsx src/bin/devserver.ts"
+    "devserver": "CODEX_CLI_PATH=$(which codex) tsx src/bin/devserver.ts"
   },
   "repository": "git@github.com:0xcaff/codex-hosted.git",
   "author": "martin <martincharles07@gmail.com>",
@@ -21,6 +22,7 @@
     "@babel/types": "^7.29.0",
     "@electron/asar": "^4.2.0",
     "@openai/codex": "^0.120.0",
+    "better-sqlite3": "^12.9.0",
     "electron": "41.2.0",
     "http-server": "^14.1.1",
     "prettier": "^3.8.2",
