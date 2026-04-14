@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "attach-anchors": "tsx src/bin/attachAnchors.ts",
     "build:bridge": "vite build --config vite.bridge.config.ts",
     "build:main-bridge": "vite build --config vite.main.config.ts",
     "launch:unpacked:server": "http-server ./scratch/asar/webview -a localhost -p 5175 -c-1",
     "launch:unpacked": "NODE_ENV=development CODEX_CLI_PATH=$(which codex) electron ./scratch/asar",
+    "prepare:asar": "bash ./scripts/prepare_asar",
     "predevserver": "yarn build:bridge && yarn build:main-bridge",
-    "replace-anchors": "tsx src/bin/replaceAnchors.ts",
     "devserver": "CODEX_CLI_PATH=$(which codex) tsx src/bin/devserver.ts"
   },
   "repository": "git@github.com:0xcaff/codex-hosted.git",
@@ -24,6 +23,7 @@
     "@openai/codex": "^0.120.0",
     "better-sqlite3": "^12.9.0",
     "electron": "41.2.0",
+    "glob": "^13.0.6",
     "http-server": "^14.1.1",
     "prettier": "^3.8.2",
     "tsx": "^4.21.0",

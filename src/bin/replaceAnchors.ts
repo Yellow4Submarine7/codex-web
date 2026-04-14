@@ -1,108 +1,35 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-declare const require: any;
-declare const process: any;
-
-const fs = require("node:fs");
-const path = require("node:path");
-const parser = require("@babel/parser");
-const traverse = require("@babel/traverse").default;
-const generate = require("@babel/generator").default;
-const t = require("@babel/types");
+import fs from "node:fs/promises";
+import path from "node:path";
+import { parse, type ParserPlugin } from "@babel/parser";
+import generate from "@babel/generator";
+import traverse, {
+  type Binding,
+  type NodePath,
+  type Scope,
+} from "@babel/traverse";
+import * as t from "@babel/types";
+import { glob } from "glob";
 
 type MappingPair = [string, string];
 
-function printUsage() {
-  console.log(
-    [
-      "Usage:",
-      "  replaceAnchors <root-path> <anchored-file> [output-file]",
-      "",
-      "Mapping path:",
-      "  data/mappings/<path-inside-root>.json",
-      "",
-      "Example:",
-      "  replaceAnchors /private/tmp/codex-unpacked-app /private/tmp/codex-unpacked-app/.vite/build/main-BctBUwXr.js",
-      "  -> reads data/mappings/.vite/build/main-BctBUwXr.json",
-    ].join("\n"),
-  );
-}
+const PARSER_PLUGINS: ParserPlugin[] = [
+  "jsx",
+  "typescript",
+  "decorators-legacy",
+];
 
-function parseAst(sourceCode: string) {
-  return parser.parse(sourceCode, {
-    sourceType: "unambiguous",
-    plugins: ["jsx", "typescript", "decorators-legacy"],
-  });
-}
-
-function isInsideRoot(rootPath: string, targetPath: string) {
-  const relative = path.relative(rootPath, targetPath);
-  return (
-    relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
-  );
-}
-
-function toMappingPath(
-  repoRoot: string,
-  rootPath: string,
-  anchoredFilePath: string,
-) {
-  if (!isInsideRoot(rootPath, anchoredFilePath)) {
-    throw new Error(
-      `Anchored file must be inside root path. root=${rootPath}, file=${anchoredFilePath}`,
-    );
-  }
-
-  const relativeInsideRoot = path.relative(rootPath, anchoredFilePath);
-  const parsed = path.parse(relativeInsideRoot);
-  const mappingRelativePath = path.join(parsed.dir, `${parsed.name}.json`);
-  return path.join(repoRoot, "data", "mappings", mappingRelativePath);
-}
-
-function loadMappings(mappingPath: string) {
-  if (!fs.existsSync(mappingPath)) {
-    throw new Error(`Mapping file not found: ${mappingPath}`);
-  }
-
-  const raw = fs.readFileSync(mappingPath, "utf8");
-  const parsed = JSON.parse(raw);
-
-  if (!Array.isArray(parsed)) {
-    throw new Error(
-      `Mapping file must be an array of [from, to] string pairs: ${mappingPath}`,
-    );
-  }
-
-  const mappingByAnchor = new Map<string, string>();
-  for (const entry of parsed) {
-    if (
-      !Array.isArray(entry) ||
-      entry.length !== 2 ||
-      typeof entry[0] !== "string" ||
-      typeof entry[1] !== "string"
-    ) {
-      throw new Error(
-        `Invalid mapping entry in ${mappingPath}. Expected [string, string], got: ${JSON.stringify(
-          entry,
-        )}`,
-      );
-    }
-
-    const [from, to] = entry as MappingPair;
-    mappingByAnchor.set(from, to);
-  }
-
-  return mappingByAnchor;
-}
-
-function extractAnchorIdFromComments(comments: any): string | null {
+function extractAnchorIdFromComments(
+  comments: readonly (t.CommentBlock | t.CommentLine)[] | null | undefined,
+): string | null {
   if (!Array.isArray(comments)) {
     return null;
   }
 
   for (const comment of comments) {
-    const value = String(comment?.value ?? "").trim();
+    const value = String(comment.value ?? "").trim();
     if (/^r3v_[A-Za-z0-9_]+$/.test(value)) {
       return value;
     }
@@ -111,22 +38,25 @@ function extractAnchorIdFromComments(comments: any): string | null {
   return null;
 }
 
-function extractAnchorId(identifierPath: any): string | null {
+function extractAnchorId(
+  identifierPath: NodePath<t.Identifier>,
+): string | null {
   return (
-    extractAnchorIdFromComments(identifierPath.node?.leadingComments) ??
-    extractAnchorIdFromComments(identifierPath.parent?.leadingComments)
+    extractAnchorIdFromComments(identifierPath.node.leadingComments) ??
+    extractAnchorIdFromComments(identifierPath.parent.leadingComments)
   );
 }
 
-function findOwnBinding(identifierPath: any) {
-  let currentScope = identifierPath.scope;
+function findOwnBinding(
+  identifierPath: NodePath<t.Identifier>,
+): { binding: Binding; scope: Scope } | null {
+  let currentScope: Scope | null = identifierPath.scope;
 
   while (currentScope) {
     const binding = currentScope.getOwnBinding(identifierPath.node.name);
     if (binding && binding.identifier === identifierPath.node) {
       return { scope: currentScope, binding };
     }
-
     currentScope = currentScope.parent;
   }
 
@@ -136,13 +66,16 @@ function findOwnBinding(identifierPath: any) {
 function applyRenames(
   sourceCode: string,
   mappingByAnchor: Map<string, string>,
-) {
-  const ast = parseAst(sourceCode);
-  const renamedBindingIdentifiers = new Set<any>();
-  let appliedCount = 0;
+): { code: string; didRename: boolean } {
+  const ast = parse(sourceCode, {
+    sourceType: "unambiguous",
+    plugins: PARSER_PLUGINS,
+  });
+  const renamedBindingIdentifiers = new Set<t.Identifier>();
+  let didRename = false;
 
   traverse(ast, {
-    Identifier(identifierPath: any) {
+    Identifier(identifierPath: NodePath<t.Identifier>) {
       if (!identifierPath.isBindingIdentifier()) {
         return;
       }
@@ -169,56 +102,66 @@ function applyRenames(
       }
 
       const { scope, binding } = resolved;
-
       if (renamedBindingIdentifiers.has(binding.identifier)) {
         return;
       }
 
       if (binding.identifier.name !== nextName) {
         scope.rename(binding.identifier.name, nextName);
+        didRename = true;
       }
 
       renamedBindingIdentifiers.add(binding.identifier);
-      appliedCount += 1;
     },
   });
 
-  const code = generate(ast, { comments: true }).code;
-  return { code, appliedCount };
+  return {
+    code: generate(ast, { comments: true }).code,
+    didRename,
+  };
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  if (args.includes("--help") || args.includes("-h")) {
-    printUsage();
-    process.exit(0);
+async function main(args: string[]): Promise<void> {
+  if (args.length !== 2) {
+    throw new Error(
+      "Expected exactly two positional arguments: <mappings-path> <destination-path>",
+    );
   }
 
-  if (args.length < 2) {
-    printUsage();
-    process.exit(1);
+  const mappingsRootPath = path.resolve(args[0]);
+  const destinationRootPath = path.resolve(args[1]);
+
+  for (const mappingPath of await glob(`**/*.json`, {
+    cwd: mappingsRootPath,
+    absolute: true,
+    dot: true,
+    nodir: true,
+  })) {
+    const relativeMappingPath = path.relative(mappingsRootPath, mappingPath);
+    const parsed = path.parse(relativeMappingPath);
+    const destinationRelativePath = path.join(parsed.dir, `${parsed.name}.js`);
+
+    const sourceCode = await fs.readFile(
+      path.join(destinationRootPath, destinationRelativePath),
+      "utf8",
+    );
+
+    const mappings = JSON.parse(await fs.readFile(mappingPath, "utf8"));
+    const { code, didRename } = applyRenames(sourceCode, new Map(mappings));
+
+    await fs.writeFile(
+      path.join(destinationRootPath, destinationRelativePath),
+      code,
+      "utf8",
+    );
+
+    console.log(
+      [
+        `Applied mapping: ${mappingPath}`,
+        `Source file: ${destinationRelativePath}`,
+      ].join("\n"),
+    );
   }
-
-  const rootPath = path.resolve(args[0]);
-  const anchoredFilePath = path.resolve(args[1]);
-  const outputPath = path.resolve(args[2] ?? args[1]);
-  const repoRoot = process.cwd();
-  const mappingPath = toMappingPath(repoRoot, rootPath, anchoredFilePath);
-  const mappingByAnchor = loadMappings(mappingPath);
-
-  const sourceCode = fs.readFileSync(anchoredFilePath, "utf8");
-  const { code, appliedCount } = applyRenames(sourceCode, mappingByAnchor);
-
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, code, "utf8");
-
-  console.log(
-    [
-      `Mappings: ${mappingPath}`,
-      `Renamed bindings: ${appliedCount}`,
-      `Wrote: ${outputPath}`,
-    ].join("\n"),
-  );
 }
 
-main();
+main(process.argv.slice(2));

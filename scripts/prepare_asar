@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euox pipefail
+shopt -s globstar
+
+unzip -o $HOSTED_CODEX_APP_ZIP -d scratch/
+asar extract "scratch/Codex.app/Contents/Resources/app.asar" "scratch/asar"
+tsx src/bin/attachAnchors.ts --inPlace scratch/asar/.vite/**/*.js
+tsx src/bin/replaceAnchors.ts data/mappings/.vite scratch/asar/.vite
+prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
