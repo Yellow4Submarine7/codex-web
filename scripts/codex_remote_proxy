@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" != "app-server" ]]; then
+  echo "codex_remote_proxy only supports app-server mode" >&2
+  exit 64
+fi
+
+# Ignore remaining args (for compatibility with codex app-server invocations).
+shift || true
+
+exec websocat -E -t "${CODEX_REMOTE_WS_URL}"
