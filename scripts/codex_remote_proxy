@@ -9,4 +9,9 @@ fi
 # Ignore remaining args (for compatibility with codex app-server invocations).
 shift || true
 
-exec websocat -E -t "${CODEX_REMOTE_WS_URL}"
+# Websocat defaults to 64KiB max message size, which causes warnings and
+# message splitting for larger app-server payloads. Use a safer default while
+# still allowing runtime override.
+CODEX_REMOTE_WS_BUFFER_SIZE="${CODEX_REMOTE_WS_BUFFER_SIZE:-1048576}"
+
+exec websocat -E -t -B "${CODEX_REMOTE_WS_BUFFER_SIZE}" "${CODEX_REMOTE_WS_URL}"
