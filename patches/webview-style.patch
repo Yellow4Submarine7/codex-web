@@ -1,0 +1,10 @@
+--- a/webview/index.html
++++ b/webview/index.html
+@@ -527,6 +527,7 @@
+       href="./assets/plugins-page-DoKhPslE.css"
+     />
+     <link rel="stylesheet" crossorigin href="./assets/index-Bq08LiKo.css" />
++    <style>.main-surface { --spacing-token-safe-header-left: 0px; }</style>
+   </head>
+   <body tabindex="0" style="outline: none">
+     <div id="root">

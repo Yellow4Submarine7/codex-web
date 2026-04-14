@@ -8,6 +8,7 @@ tsx scripts/anchors/attach.ts --inPlace scratch/asar/.vite/**/*.js
 tsx scripts/anchors/replace.ts data/mappings/.vite scratch/asar/.vite
 prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-remove-csp.patch
+patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-style.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-preload.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/sentry-disable-shell.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/sentry-disable-webview.patch
