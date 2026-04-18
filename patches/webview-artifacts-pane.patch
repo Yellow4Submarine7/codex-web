@@ -1,0 +1,11 @@
+--- a/webview/assets/statsig-axnzwuK0.js
++++ b/webview/assets/statsig-axnzwuK0.js
+@@ -4251,6 +4251,7 @@
+       getContextHandle() {
+         return this._contextHandle;
+       }
+       checkGate(e, t) {
++        if (e === `3903742690`) return !0;
+         return this.getFeatureGate(e, t).value;
+       }
+       logEvent(e, t, n) {
