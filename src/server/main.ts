@@ -239,7 +239,7 @@ function startIpcBridgeServer(
     ensureElectronLikeProcessContext();
     installModuleAliasHook();
 
-    const module = require(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-1fsOo4Rt.js"));
+    const module = require(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-BnI_RVTn.js"));
     module.runMainAppStartup();
   });
 }

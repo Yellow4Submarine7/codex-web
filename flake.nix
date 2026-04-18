@@ -33,8 +33,8 @@
           programs.nixfmt.enable = true;
         };
         codexZip = pkgs.fetchurl {
-          url = "https://persistent.oaistatic.com/codex-app-prod/Codex-darwin-arm64-26.409.20454.zip";
-          hash = "sha256-J1xOgVwwXWIcU80Nwqg3xhQxQLHuuDPjpTGlhU2SybQ=";
+          url = "https://persistent.oaistatic.com/codex-app-prod/Codex-darwin-arm64-26.415.20818.zip";
+          hash = "sha256-NQgcjVeR9ACr2ZinsWSlR8GTsak6zuv1Qv+OyPIMtUg=";
         };
       in
       {

@@ -1,10 +1,10 @@
---- a/webview/assets/large-empty-state-DEvsPXBF.js
-+++ b/webview/assets/large-empty-state-DEvsPXBF.js
-@@ -57742,6 +57742,7 @@
-     n = je(e.appVersion),
+--- a/webview/assets/use-model-settings-BXpE6yHZ.js
++++ b/webview/assets/use-model-settings-BXpE6yHZ.js
+@@ -84186,6 +84186,7 @@
+     n = Ue(e.appVersion),
      r = e.buildFlavor !== `prod`;
-   (BY({
+   (E1({
 +    enabled: !1,
-     dsn: j,
-     environment: UY,
-     release: Le(n.version),
+     dsn: L,
+     environment: k1,
+     release: P(n.version),

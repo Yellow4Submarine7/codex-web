@@ -1,25 +1,23 @@
---- a/webview/assets/index-CAbvp5mX.js
-+++ b/webview/assets/index-CAbvp5mX.js
-@@ -18412,6 +18412,7 @@
-   let r = Me(Wo),
-     i = f(),
-     a = J(sr, e),
-+    codexHostedWindowTitle = J(ya, e),
-     o = J(mn, e),
-     s = J(It, e) ?? A5,
-     c = J(_r, e) ?? k5,
-@@ -18448,7 +18449,13 @@
+--- a/webview/assets/index-1LJShyXg.js
++++ b/webview/assets/index-1LJShyXg.js
+@@ -120573,6 +120573,7 @@
+   let r = He(Cm),
+     i = d(),
+     a = We(pr, e),
++    codexHostedWindowTitle = We(ga, e),
+     o = We(Tr, e),
+     s = We(on, e) ?? O5,
+     c = We(ni, e),
+@@ -120623,7 +120624,11 @@
    ),
      (0, Z.useEffect)(() => {
-       E?.id == null || E.readAt != null || w(E.id);
--    }, [E?.id, E?.readAt, w]));
-+    }, [E?.id, E?.readAt, w]),
+       j?.id == null || j.readAt != null || A(j.id);
+-    }, [j?.id, j?.readAt, A]));
++    }, [j?.id, j?.readAt, A]),
 +    (0, Z.useEffect)(() => {
-+      let threadTitleForWindow = codexHostedWindowTitle?.trim();
-+      document.title = threadTitleForWindow
-+        ? `${threadTitleForWindow} | Codex`
-+        : `Codex`;
++      let t = codexHostedWindowTitle?.trim();
++      document.title = t ? `${t} | Codex` : `Codex`;
 +    }, [codexHostedWindowTitle]));
-   let k = Ni(),
-     { agentMode: A } = wc({ conversationId: e }),
-     j = s.some((e) => e.items.some((e) => e.type === `userMessage`)),
+   let P = ea(),
+     { agentMode: F } = If({ conversationId: e, hostId: l }),
+     I = c ? ve(c) : null,
