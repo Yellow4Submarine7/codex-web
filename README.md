@@ -6,7 +6,7 @@ host codex desktop on a machine you control and reach it from a browser.
 
 the agents were never meant to stay trapped in a terminal window for long.
 codex desktop brought the power of the agents to your local computer, where
-your files, credentials and tools already live.
+your files, credentials, and tools already live.
 
 codex-web brings codex desktop to the browser while keeping the backend on a
 machine you control (a linux box in the cloud, your home lab, or a desktop / mac
