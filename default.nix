@@ -42,7 +42,7 @@ flake-utils.lib.eachSystem systems (
         pkgs.stdenv.mkDerivation {
           HOSTED_CODEX_APP_ZIP = codexZip;
 
-          pname = "codex-hosted";
+          pname = "codex-web";
           version = "1.0.0";
           src = ./.;
 
@@ -78,9 +78,9 @@ flake-utils.lib.eachSystem systems (
           '';
 
           postInstall = ''
-            mv $out/lib/node_modules/codex-hosted/scratch/asar/{asar_,}node_modules
+            mv $out/lib/node_modules/codex-web/scratch/asar/{asar_,}node_modules
 
-            pushd $out/lib/node_modules/codex-hosted/node_modules/better-sqlite3
+            pushd $out/lib/node_modules/codex-web/node_modules/better-sqlite3
             npm run build-release --offline --nodedir="${nodeSources}"
             rm -rf build/Release/{.deps,obj,obj.target,test_extension.node}
             find build -type f -exec ${pkgs.lib.getExe pkgs.removeReferencesTo} -t "${nodeSources}" {} \;

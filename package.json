@@ -1,5 +1,5 @@
 {
-  "name": "codex-hosted",
+  "name": "codex-web",
   "version": "0.0.1",
   "files": [
     "README.md",
@@ -21,7 +21,7 @@
     "preserver": "npm run build:server",
     "server": "CODEX_CLI_PATH=$(which codex) node src/server/main.js"
   },
-  "repository": "git@github.com:0xcaff/codex-hosted.git",
+  "repository": "git@github.com:0xcaff/codex-web.git",
   "author": "martin <martincharles07@gmail.com>",
   "license": "MIT",
   "dependencies": {
