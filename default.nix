@@ -48,7 +48,7 @@ flake-utils.lib.eachSystem systems (
 
           yarnOfflineCache = pkgs.fetchYarnDeps {
             yarnLock = ./yarn.lock;
-            hash = "sha256-29HFx48gV+fuk2hDWJr2b4ZnU76xH3L65fg0v/RVBd8=";
+            hash = "sha256-T/sWEIHRtxtF5HUvBOGryK1mtnZ6mAcpyIhugeDWhbQ=";
           };
 
           nativeBuildInputs = [
