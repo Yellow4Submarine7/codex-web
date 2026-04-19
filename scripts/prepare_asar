@@ -4,7 +4,14 @@ set -euxo pipefail
 unzip -o "$HOSTED_CODEX_APP_ZIP" -d scratch/
 asar extract "scratch/Codex.app/Contents/Resources/app.asar" "scratch/asar"
 cp assets/favicon.svg scratch/asar/webview/favicon.svg
-prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
+if [[ -n "${DEV:-}" ]]; then
+  prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
+else
+  mapfile -t patched_files < <(
+    awk '/^\+\+\+ b\//{sub(/^\+\+\+ b\//, "scratch/asar/"); print}' patches/*.patch | sort -u
+  )
+  prettier --ignore-path /dev/null --ignore-unknown --write "${patched_files[@]}"
+fi
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-remove-csp.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-style.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-preload.patch
