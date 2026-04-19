@@ -1,6 +1,8 @@
 import path from "node:path";
 import { parseArgs as parseCliArgs } from "node:util";
 import { WebSocket, WebSocketServer } from "ws";
+import Fastify from "fastify";
+import fastifyStatic from "@fastify/static";
 import { installModuleAliasHook } from "./module";
 
 type ServerOptions = {
@@ -44,14 +46,8 @@ type MainToRendererMessage =
 
 type IpcMainBridgeState = {
   broadcastToRenderer?: (message: MainToRendererMessage) => void;
-  handleRendererInvoke?: (
-    channel: string,
-    args: unknown[],
-  ) => Promise<unknown>;
-  handleRendererSend?: (
-    channel: string,
-    args: unknown[],
-  ) => void;
+  handleRendererInvoke?: (channel: string, args: unknown[]) => Promise<unknown>;
+  handleRendererSend?: (channel: string, args: unknown[]) => void;
 };
 
 const IPC_BRIDGE_PATH = "/__electron_ipc";
@@ -60,7 +56,7 @@ function printUsage(): void {
   console.log(
     [
       "Usage:",
-      "  server [--host <host>] [--port <port>] [--renderer-url <url>]",
+      "  server [--host <host>] [--port <port>]",
       "",
       "Defaults:",
       "  --host 127.0.0.1",
@@ -145,21 +141,48 @@ function ensureElectronLikeProcessContext(): void {
     resourcesPath?: string;
     type?: string;
   };
-  processWithElectronFields.resourcesPath ??= path.resolve(__dirname, "../../scratch/asar");
+  processWithElectronFields.resourcesPath ??= path.resolve(
+    __dirname,
+    "../../scratch/asar",
+  );
   processWithElectronFields.type ??= "browser";
 }
 
-
-function startIpcBridgeServer(
-  options: ServerOptions,
-): void {
+async function startIpcBridgeServer(options: ServerOptions): Promise<void> {
   const bridgeState = getIpcMainBridgeState();
-  const websocketServer = new WebSocketServer({
-    host: options.host,
-    port: options.port,
-    path: IPC_BRIDGE_PATH,
-  });
+  const app = Fastify({ logger: false });
+  const websocketServer = new WebSocketServer({ noServer: true });
   const sockets = new Set<WebSocket>();
+
+  await app.register(fastifyStatic, {
+    root: path.resolve(__dirname, "../../scratch/asar/webview"),
+    prefix: "/",
+  });
+
+  app.get("/", async (_request, reply) => {
+    return reply.sendFile("index.html");
+  });
+
+  app.setNotFoundHandler((request, reply) => {
+    if (request.method === "GET") {
+      return reply.sendFile("index.html");
+    }
+    return reply.code(404).send({ error: "Not Found" });
+  });
+
+  app.server.on("upgrade", (request, socket, head) => {
+    const requestUrl = request.url ?? "/";
+    const host = request.headers.host ?? "localhost";
+    const url = new URL(requestUrl, `http://${host}`);
+    if (url.pathname !== IPC_BRIDGE_PATH) {
+      socket.destroy();
+      return;
+    }
+
+    websocketServer.handleUpgrade(request, socket, head, (upgradedSocket) => {
+      websocketServer.emit("connection", upgradedSocket, request);
+    });
+  });
 
   bridgeState.broadcastToRenderer = (message: MainToRendererMessage): void => {
     const payload = JSON.stringify(message);
@@ -187,10 +210,7 @@ function startIpcBridgeServer(
       }
 
       if (message.type === "ipc-renderer-send") {
-        bridgeState.handleRendererSend?.(
-          message.channel,
-          message.args,
-        );
+        bridgeState.handleRendererSend?.(message.channel, message.args);
         return;
       }
 
@@ -230,22 +250,24 @@ function startIpcBridgeServer(
     });
   });
 
-  websocketServer.on("listening", () => {
-    console.log(
-      `IPC bridge listening at ws://${options.host}:${options.port}${IPC_BRIDGE_PATH}`,
-    );
-    ensureElectronLikeProcessContext();
-    installModuleAliasHook();
+  await app.listen({ host: options.host, port: options.port });
+  console.log(
+    `IPC bridge listening at ws://${options.host}:${options.port}${IPC_BRIDGE_PATH}`,
+  );
 
-    const module = require(path.resolve(__dirname, "../../scratch/asar/.vite/build/main-BnI_RVTn.js"));
-    module.runMainAppStartup();
-  });
+  ensureElectronLikeProcessContext();
+  installModuleAliasHook();
+
+  const module = require(
+    path.resolve(__dirname, "../../scratch/asar/.vite/build/main-BnI_RVTn.js"),
+  );
+  module.runMainAppStartup();
 }
 
-function main(args: string[]): void {
+async function main(args: string[]) {
   const options = parseServerArgs(args);
 
-  startIpcBridgeServer(options);
+  await startIpcBridgeServer(options);
 }
 
 main(process.argv.slice(2));
