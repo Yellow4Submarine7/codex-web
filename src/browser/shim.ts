@@ -224,20 +224,9 @@ export const ipcRenderer = {
           display_name: "Local",
           kind: "local",
         },
-        remote_connections: [
-          {
-            hostId: "remote-ssh-discovered:nixos",
-            displayName: "nixos",
-            source: "discovered",
-            autoConnect: false,
-            sshAlias: "nixos",
-            sshHost: "nixos",
-            sshPort: 22,
-            identity: "~/.ssh/id_ed25519",
-          },
-        ],
+        remote_connections: [],
         remote_control_connections_state: {
-          available: true,
+          available: false,
           authRequired: false,
         },
         pending_worktrees: [],
