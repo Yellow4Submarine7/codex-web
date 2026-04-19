@@ -14,7 +14,7 @@ shuts on your laptop, remaining reachable from mobile or any other platform that
 can run a browser.
 
 this project aims to be as thin a wrapper as possible to ensure upstream changes
-can be integrated quickly.
+to the codex desktop app can be integrated quickly.
 
 ## features
 
