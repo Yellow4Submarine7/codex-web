@@ -1,0 +1,27 @@
+--- a/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
++++ b/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
+@@ -891,7 +891,12 @@
+ }
+ function ze({ basename: e, children: t, initialEntries: n, initialIndex: a }) {
+   let o = r.useRef();
+-  o.current ??= i({ initialEntries: n, initialIndex: a, v5Compat: !0 });
++  o.current ??= i({
++    initialEntries:
++      n ?? [window.__ELECTRON_SHIM__.initialRoute],
++    initialIndex: a,
++    v5Compat: !0,
++  });
+   let s = o.current,
+     [c, l] = r.useState({ action: s.action, location: s.location }),
+     u = r.useCallback(
+--- a/webview/assets/use-model-settings-BXpE6yHZ.js
++++ b/webview/assets/use-model-settings-BXpE6yHZ.js
+@@ -1795,7 +1795,7 @@
+   Pee = zc.entries$,
+   Fee = Bc.entries$,
+   Iee = { center: zc, left: Bc },
+-  Vc = x(g, !0),
++  Vc = x(g, window.__ELECTRON_SHIM__.initialSidebarState),
+   Hc = x(Pa, !1),
+   Uc = x(Pa, () => new ja(0)),
+   Wc = x(Pa, !1),

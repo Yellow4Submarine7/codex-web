@@ -1,3 +1,8 @@
+import {
+  mapBrowserPathToInitialRoute,
+  mapMemoryPathToBrowserPath,
+} from "./routes";
+
 type IpcListener = (event: unknown, ...args: unknown[]) => void;
 
 type RendererToMainMessage =
@@ -34,6 +39,18 @@ type MainToRendererMessage =
 
 const IPC_BRIDGE_PATH = "/__electron_ipc";
 const RECONNECT_DELAY_MS = 1_000;
+
+type ElectronShimState = {
+  initialRoute?: string;
+  initialSidebarState?: boolean;
+  onMemoryNavigationChanged?: (path: string, state: unknown) => void;
+};
+
+declare global {
+  interface Window {
+    __ELECTRON_SHIM__?: ElectronShimState;
+  }
+}
 
 let requestCounter = 0;
 let socket: WebSocket | null = null;
@@ -158,8 +175,32 @@ function addIpcListener(channel: string, listener: IpcListener): void {
 }
 
 const themeMediaQuery = matchMedia("(prefers-color-scheme: dark)");
+const initialSidebarState = !matchMedia("(max-width: 768px)").matches;
+const electronShim = (window.__ELECTRON_SHIM__ ??= {});
 
-const buildFlavor: 'prod' | 'dev' | 'agent' | string = "prod";
+electronShim.initialRoute = mapBrowserPathToInitialRoute(
+  window.location.pathname,
+);
+electronShim.initialSidebarState = initialSidebarState;
+electronShim.onMemoryNavigationChanged = (path) => {
+  const browserPath = mapMemoryPathToBrowserPath(path);
+  if (browserPath == null) {
+    return;
+  }
+
+  if (browserPath.titleChange) {
+    document.title = browserPath.titleChange;
+  }
+
+  if (window.location.pathname === browserPath.path) {
+    window.history.replaceState(undefined, "", browserPath.path);
+    return;
+  }
+
+  window.history.pushState(undefined, "", browserPath.path);
+};
+
+const buildFlavor: "prod" | "dev" | "agent" | string = "prod";
 
 export const ipcRenderer = {
   invoke(channel: string, ...args: unknown[]): Promise<unknown> {
