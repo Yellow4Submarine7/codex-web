@@ -1,0 +1,13 @@
+{
+  "short_name": "Codex",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/assets/app-D0g8sCle.png",
+      "sizes": "544x544",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

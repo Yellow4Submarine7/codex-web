@@ -3,7 +3,7 @@ set -euxo pipefail
 
 unzip -o "$HOSTED_CODEX_APP_ZIP" -d scratch/
 asar extract "scratch/Codex.app/Contents/Resources/app.asar" "scratch/asar"
-cp assets/favicon.svg scratch/asar/webview/favicon.svg
+cp assets/* scratch/asar/webview/
 if [[ -n "${DEV:-}" ]]; then
   prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
 else
@@ -16,6 +16,7 @@ patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-rem
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-style.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-preload.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-favicon.patch
+patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-pwa.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-thread-title.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-initial-route.patch
 patch --batch --forward --strip 1 --directory scratch/asar < patches/webview-artifacts-pane.patch
