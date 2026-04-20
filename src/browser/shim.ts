@@ -159,6 +159,8 @@ function addIpcListener(channel: string, listener: IpcListener): void {
 
 const themeMediaQuery = matchMedia("(prefers-color-scheme: dark)");
 
+const buildFlavor: 'prod' | 'dev' | 'agent' | string = "prod";
+
 export const ipcRenderer = {
   invoke(channel: string, ...args: unknown[]): Promise<unknown> {
     const requestId = nextRequestId();
@@ -206,7 +208,7 @@ export const ipcRenderer = {
     if (channel === "codex_desktop:get-sentry-init-options") {
       return {
         codexAppSessionId: "42626fde-7064-471f-b44d-b1a7ad849c7f",
-        buildFlavor: "dev",
+        buildFlavor,
         buildNumber: null,
         appVersion: "26.409.20454",
         enabled: false,
@@ -214,7 +216,7 @@ export const ipcRenderer = {
     }
 
     if (channel === "codex_desktop:get-build-flavor") {
-      return "dev";
+      return buildFlavor;
     }
 
     if (channel === "codex_desktop:get-shared-object-snapshot") {
