@@ -5,7 +5,13 @@ type StubWebContents = {
   mainFrame: {
     url: string;
   };
+  addListener: (event: string, listener: StubListener) => unknown;
+  emit: (event: string, ...args: unknown[]) => boolean;
   isDestroyed: () => boolean;
+  off: (event: string, listener: StubListener) => unknown;
+  on: (event: string, listener: StubListener) => unknown;
+  once: (event: string, listener: StubListener) => unknown;
+  removeListener: (event: string, listener: StubListener) => unknown;
   send: (channel: string, ...args: unknown[]) => void;
 };
 type IpcMainEvent = {
@@ -148,12 +154,20 @@ function createMessagePortStub(label: string): {
   };
 }
 
-function createIpcMainEvent(): IpcMainEvent {
-  const rendererUrl = "http://localhost:5175/";
+function defaultRendererUrl(): string {
+  return process.env.ELECTRON_RENDERER_URL || "http://localhost:5175/";
+}
+
+let fallbackRendererWebContents: StubWebContents | null = null;
+
+function createFallbackRendererWebContents(): StubWebContents {
+  const rendererUrl = defaultRendererUrl();
   const mainFrame = {
     url: rendererUrl,
   };
+  const emitter = createEmitterStub("ipcMainEvent.sender");
   const sender: StubWebContents = {
+    ...emitter,
     id: 1001,
     mainFrame,
     isDestroyed: () => false,
@@ -166,12 +180,28 @@ function createIpcMainEvent(): IpcMainEvent {
     },
   };
 
+  return sender;
+}
+
+function getRendererWebContents(): StubWebContents {
+  const [window] = BrowserWindow.getAllWindows();
+  if (window) {
+    return window.webContents as StubWebContents;
+  }
+
+  fallbackRendererWebContents ??= createFallbackRendererWebContents();
+  return fallbackRendererWebContents;
+}
+
+function createIpcMainEvent(): IpcMainEvent {
+  const sender = getRendererWebContents();
+
   const event: IpcMainEvent = {
     returnValue: undefined,
     processId: 1,
     frameId: 1,
     sender,
-    senderFrame: mainFrame,
+    senderFrame: sender.mainFrame,
     reply: (channel: string, ...args: unknown[]): void => {
       getIpcMainBridgeState().broadcastToRenderer?.({
         type: "ipc-main-event",
@@ -349,12 +379,18 @@ class BrowserWindow {
     const webContentsEmitter = createEmitterStub(
       `BrowserWindow#${this.id}.webContents`,
     );
+    const mainFrame = {
+      url: defaultRendererUrl(),
+    };
     this.webContents = new Proxy(
       {
         ...webContentsEmitter,
         id: this.id * 1000 + 1,
+        mainFrame,
+        isDestroyed: (): boolean => this.destroyed,
         loadURL: async (url: string): Promise<void> => {
           log(`BrowserWindow#${this.id}.webContents.loadURL`, [url]);
+          mainFrame.url = url;
         },
         loadFile: async (...loadFileArgs: unknown[]): Promise<void> => {
           log(`BrowserWindow#${this.id}.webContents.loadFile`, loadFileArgs);
@@ -452,6 +488,9 @@ class BrowserWindow {
     if (BrowserWindow.focusedWindow === this) {
       BrowserWindow.focusedWindow = null;
     }
+    (this.webContents as { emit?: (event: string) => boolean }).emit?.(
+      "destroyed",
+    );
     this.emitter.emit("closed");
   }
 
