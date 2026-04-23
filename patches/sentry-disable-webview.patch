@@ -1,10 +1,10 @@
---- a/webview/assets/error-boundary-B4o8F8cg.js
-+++ b/webview/assets/error-boundary-B4o8F8cg.js
-@@ -7601,6 +7601,7 @@
-     n = c(e.appVersion),
+--- a/webview/assets/use-model-settings-BXpE6yHZ.js
++++ b/webview/assets/use-model-settings-BXpE6yHZ.js
+@@ -84186,6 +84186,7 @@
+     n = Ue(e.appVersion),
      r = e.buildFlavor !== `prod`;
-   (yf({
+   (E1({
 +    enabled: !1,
-     dsn: o,
-     environment: Sf,
-     release: f(n.version),
+     dsn: L,
+     environment: k1,
+     release: P(n.version),
