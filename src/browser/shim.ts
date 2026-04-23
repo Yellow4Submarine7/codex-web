@@ -40,10 +40,23 @@ type MainToRendererMessage =
 const IPC_BRIDGE_PATH = "/__electron_ipc";
 const RECONNECT_DELAY_MS = 1_000;
 
+type MemoryNavigationChange = {
+  action: "POP" | "PUSH" | "REPLACE";
+  delta: number;
+  location: {
+    hash: string;
+    key: string;
+    pathname: string;
+    search: string;
+    state: unknown;
+  };
+};
+
 type ElectronShimState = {
   initialRoute?: string;
   initialSidebarState?: boolean;
-  onMemoryNavigationChanged?: (path: string, state: unknown) => void;
+  closeSidebar?: () => void;
+  onMemoryNavigationChanged?: (navigation: MemoryNavigationChange) => void;
 };
 
 declare global {
@@ -174,15 +187,34 @@ function addIpcListener(channel: string, listener: IpcListener): void {
   rendererListeners.set(channel, listeners);
 }
 
+function shouldCloseSidebarForMemoryPath(path: string): boolean {
+  return (
+    path === "/" ||
+    path.startsWith("/local/") ||
+    path === "/skills" ||
+    path === "/automations"
+  );
+}
+
 const themeMediaQuery = matchMedia("(prefers-color-scheme: dark)");
-const initialSidebarState = !matchMedia("(max-width: 768px)").matches;
+const mobileMediaQuery = matchMedia("(max-width: 768px)");
+const initialSidebarState = !mobileMediaQuery.matches;
 const electronShim = (window.__ELECTRON_SHIM__ ??= {});
 
 electronShim.initialRoute = mapBrowserPathToInitialRoute(
   window.location.pathname,
 );
 electronShim.initialSidebarState = initialSidebarState;
-electronShim.onMemoryNavigationChanged = (path) => {
+electronShim.onMemoryNavigationChanged = (navigation) => {
+  const path = navigation.location.pathname;
+  if (
+    navigation.action !== "POP" &&
+    mobileMediaQuery.matches &&
+    shouldCloseSidebarForMemoryPath(path)
+  ) {
+    electronShim.closeSidebar?.();
+  }
+
   const browserPath = mapMemoryPathToBrowserPath(path);
   if (browserPath == null) {
     return;

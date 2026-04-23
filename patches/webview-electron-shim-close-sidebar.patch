@@ -1,0 +1,21 @@
+--- a/webview/assets/index-1LJShyXg.js
++++ b/webview/assets/index-1LJShyXg.js
+@@ -149400,6 +149400,18 @@
+         }),
+       [e],
+     ),
++    (0, Z.useEffect)(() => {
++      let t = () => {
++        e.set(Ts, !1);
++      };
++      return (
++        (window.__ELECTRON_SHIM__.closeSidebar = t),
++        () => {
++          window.__ELECTRON_SHIM__.closeSidebar === t &&
++            delete window.__ELECTRON_SHIM__.closeSidebar;
++        }
++      );
++    }, [e]),
+     (0, Z.useEffect)(() => {
+       let a = n.map((n) => {
+         let a = e.get(km, n.key);

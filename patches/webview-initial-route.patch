@@ -1,6 +1,6 @@
 --- a/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
 +++ b/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
-@@ -891,7 +891,12 @@
+@@ -891,12 +891,18 @@
  }
  function ze({ basename: e, children: t, initialEntries: n, initialIndex: a }) {
    let o = r.useRef();
@@ -14,16 +14,9 @@
    let s = o.current,
      [c, l] = r.useState({ action: s.action, location: s.location }),
      u = r.useCallback(
-@@ -900,7 +905,11 @@
-   let s = o.current,
-     [c, l] = r.useState({ action: s.action, location: s.location }),
-     u = r.useCallback(
        (e) => {
 -        r.startTransition(() => l(e));
-+        (window.__ELECTRON_SHIM__.onMemoryNavigationChanged(
-+          e.location.pathname,
-+          e.location.state,
-+        ),
++        (window.__ELECTRON_SHIM__.onMemoryNavigationChanged(e),
 +        r.startTransition(() => l(e)));
        },
        [l],
