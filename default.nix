@@ -146,8 +146,7 @@ flake-utils.lib.eachSystem systems (
             rm -rf "$addon/build"
             ln -s ${betterSqlite3Native}/build "$addon/build"
 
-            wrapProgram "$out/bin/codex-web" \
-              --prefix PATH : "${pkgs.lib.makeBinPath [ codex ]}"
+            wrapProgram "$out/bin/codex-web"
           '';
         };
 
