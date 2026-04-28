@@ -34,6 +34,11 @@ flake-utils.lib.eachSystem systems (
         nativeBuildInputs = (attrs.nativeBuildInputs or [ ]) ++ [ pkgs.pkg-config ];
         buildInputs = (attrs.buildInputs or [ ]) ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.libcap ];
       };
+      codex-core = attrs: {
+        preBuild = (attrs.preBuild or "") + ''
+          cp ${src}/codex-rs/node-version.txt "$NIX_BUILD_TOP/node-version.txt"
+        '';
+      };
       rmcp = _: {
         CARGO_CRATE_NAME = "rmcp";
       };
