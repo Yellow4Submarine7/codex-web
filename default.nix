@@ -34,22 +34,73 @@ flake-utils.lib.eachSystem systems (
       ];
     };
 
-    packages = {
-      default =
-        let
-          nodeSources = pkgs.srcOnly pkgs.nodejs;
-        in
-        pkgs.stdenv.mkDerivation {
+    packages =
+      let
+        nodeSources = pkgs.srcOnly pkgs.nodejs;
+        yarnOfflineCache = pkgs.fetchYarnDeps {
+          yarnLock = ./yarn.lock;
+          hash = "sha256-T/sWEIHRtxtF5HUvBOGryK1mtnZ6mAcpyIhugeDWhbQ=";
+        };
+
+        betterSqlite3Native = pkgs.stdenv.mkDerivation {
+          pname = "better-sqlite3-native";
+          version = "12.9.0";
+          src = pkgs.runCommand "better-sqlite3-build-src" { nativeBuildInputs = [ pkgs.jq ]; } ''
+            mkdir -p "$out"
+
+            ${pkgs.lib.getExe pkgs.jq} '{
+              name: "better-sqlite3-build",
+              version: "0.0.0",
+              private: true,
+              dependencies: {
+                "better-sqlite3": .dependencies["better-sqlite3"]
+              }
+            }' ${./package.json} > "$out/package.json"
+
+            cp ${./yarn.lock} "$out/yarn.lock"
+          '';
+          inherit yarnOfflineCache;
+
+          nativeBuildInputs = [
+            pkgs.yarnConfigHook
+            pkgs.nodejs
+            pkgs.yarn
+            pkgs.python3
+            pkgs.removeReferencesTo
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.cctools ];
+
+          buildPhase = ''
+            runHook preBuild
+
+            pushd node_modules/better-sqlite3
+            npm run build-release --offline --nodedir="${nodeSources}"
+            rm -rf build/Release/{.deps,obj,obj.target,test_extension.node}
+            find build -type f -exec ${pkgs.lib.getExe pkgs.removeReferencesTo} -t "${nodeSources}" {} \;
+            popd
+
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+
+            mkdir -p "$out"
+            cp -R node_modules/better-sqlite3/build "$out/build"
+
+            runHook postInstall
+          '';
+        };
+      in
+      {
+        default = pkgs.stdenv.mkDerivation {
           HOSTED_CODEX_APP_ZIP = codexZip;
 
           pname = "codex-web";
           version = "1.0.0";
           src = ./.;
 
-          yarnOfflineCache = pkgs.fetchYarnDeps {
-            yarnLock = ./yarn.lock;
-            hash = "sha256-T/sWEIHRtxtF5HUvBOGryK1mtnZ6mAcpyIhugeDWhbQ=";
-          };
+          inherit yarnOfflineCache;
 
           nativeBuildInputs = [
             pkgs.yarnConfigHook
@@ -59,10 +110,7 @@ flake-utils.lib.eachSystem systems (
             pkgs.yarn
             pkgs.unzip
             pkgs.patch
-            pkgs.python3
-            pkgs.removeReferencesTo
-          ]
-          ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.cctools ];
+          ];
 
           preBuild = ''
             patchShebangs scripts
@@ -80,23 +128,21 @@ flake-utils.lib.eachSystem systems (
           postInstall = ''
             mv $out/lib/node_modules/codex-web/scratch/asar/{asar_,}node_modules
 
-            pushd $out/lib/node_modules/codex-web/node_modules/better-sqlite3
-            npm run build-release --offline --nodedir="${nodeSources}"
-            rm -rf build/Release/{.deps,obj,obj.target,test_extension.node}
-            find build -type f -exec ${pkgs.lib.getExe pkgs.removeReferencesTo} -t "${nodeSources}" {} \;
-            popd
+            addon="$out/lib/node_modules/codex-web/node_modules/better-sqlite3"
+            rm -rf "$addon/build"
+            ln -s ${betterSqlite3Native}/build "$addon/build"
           '';
         };
 
-      codex_remote_proxy = pkgs.writeShellApplication {
-        name = "codex_remote_proxy";
-        runtimeInputs = with pkgs; [
-          bash
-          coreutils
-          websocat
-        ];
-        text = builtins.readFile ./scripts/codex_remote_proxy;
+        codex_remote_proxy = pkgs.writeShellApplication {
+          name = "codex_remote_proxy";
+          runtimeInputs = with pkgs; [
+            bash
+            coreutils
+            websocat
+          ];
+          text = builtins.readFile ./scripts/codex_remote_proxy;
+        };
       };
-    };
   }
 )
