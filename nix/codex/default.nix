@@ -41,7 +41,7 @@ flake-utils.lib.eachSystem systems (
       };
       codex-models-manager = attrs: {
         patches = (attrs.patches or [ ]) ++ [
-          ./patches/model-list-cache-before-auth.patch
+          ./patches/codex-models-manager/model-list-cache-before-auth.patch
         ];
       };
       rmcp = _: {
