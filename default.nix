@@ -39,7 +39,7 @@ flake-utils.lib.eachSystem systems (
         nodeSources = pkgs.srcOnly pkgs.nodejs;
         yarnOfflineCache = pkgs.fetchYarnDeps {
           yarnLock = ./yarn.lock;
-          hash = "sha256-T/sWEIHRtxtF5HUvBOGryK1mtnZ6mAcpyIhugeDWhbQ=";
+          hash = "sha256-Vmgjs3QU++pMriU0ykOURwUUoRpwymtyE90xJHoXhGE=";
         };
 
         betterSqlite3Native = pkgs.stdenv.mkDerivation {
