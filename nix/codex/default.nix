@@ -39,6 +39,11 @@ flake-utils.lib.eachSystem systems (
           cp ${src}/codex-rs/node-version.txt "$NIX_BUILD_TOP/node-version.txt"
         '';
       };
+      codex-models-manager = attrs: {
+        patches = (attrs.patches or [ ]) ++ [
+          ./patches/model-list-cache-before-auth.patch
+        ];
+      };
       rmcp = _: {
         CARGO_CRATE_NAME = "rmcp";
       };
