@@ -1,13 +1,12 @@
 --- a/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
 +++ b/webview/assets/chunk-OIYGIGL5-CJrBIAxA.js
-@@ -891,12 +891,18 @@
+@@ -891,12 +891,17 @@
  }
  function ze({ basename: e, children: t, initialEntries: n, initialIndex: a }) {
    let o = r.useRef();
 -  o.current ??= i({ initialEntries: n, initialIndex: a, v5Compat: !0 });
 +  o.current ??= i({
-+    initialEntries:
-+      n ?? [window.__ELECTRON_SHIM__.initialRoute],
++    initialEntries: n ?? [window.__ELECTRON_SHIM__.initialRoute],
 +    initialIndex: a,
 +    v5Compat: !0,
 +  });
@@ -16,19 +15,19 @@
      u = r.useCallback(
        (e) => {
 -        r.startTransition(() => l(e));
-+        (window.__ELECTRON_SHIM__.onMemoryNavigationChanged(e),
-+        r.startTransition(() => l(e)));
++        window.__ELECTRON_SHIM__.onMemoryNavigationChanged(e);
++        r.startTransition(() => l(e));
        },
        [l],
      );
---- a/webview/assets/use-model-settings-BXpE6yHZ.js
-+++ b/webview/assets/use-model-settings-BXpE6yHZ.js
-@@ -1795,7 +1795,7 @@
-   Pee = zc.entries$,
-   Fee = Bc.entries$,
-   Iee = { center: zc, left: Bc },
--  Vc = x(g, !0),
-+  Vc = x(g, window.__ELECTRON_SHIM__.initialSidebarState),
-   Hc = x(Pa, !1),
-   Uc = x(Pa, () => new ja(0)),
-   Wc = x(Pa, !1),
+--- a/webview/assets/use-model-settings-Ds_s4Jfi.js
++++ b/webview/assets/use-model-settings-Ds_s4Jfi.js
+@@ -1967,7 +1967,7 @@
+   Yee = Pc.entries$,
+   Xee = Fc.entries$,
+   Zee = { center: Pc, left: Fc },
+-  Ic = ye(ue, !0),
++  Ic = ye(ue, window.__ELECTRON_SHIM__.initialSidebarState),
+   Lc = ye(Ki, !1),
+   Rc = ye(Ki, () => new _i(0)),
+   zc = ye(Ki, !1),

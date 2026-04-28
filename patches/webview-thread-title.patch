@@ -1,23 +1,25 @@
---- a/webview/assets/index-1LJShyXg.js
-+++ b/webview/assets/index-1LJShyXg.js
-@@ -120573,6 +120573,7 @@
-   let r = He(Cm),
-     i = d(),
-     a = We(pr, e),
-+    codexHostedWindowTitle = We(ga, e),
-     o = We(Tr, e),
-     s = We(on, e) ?? O5,
-     c = We(ni, e),
-@@ -120623,7 +120624,11 @@
+--- a/webview/assets/index-gATb9Tvd.js
++++ b/webview/assets/index-gATb9Tvd.js
+@@ -121300,6 +121300,7 @@
+   let i = R(hh),
+     a = d(),
+     o = z(fr, e),
++    codexHostedWindowTitle = z(xn, e),
+     s = z(Tn, e),
+     c = z(vn, e) ?? x5,
+     l = z(Er, e),
+@@ -121349,9 +121350,13 @@
+     ),
+     [e, u],
    ),
      (0, Z.useEffect)(() => {
-       j?.id == null || j.readAt != null || A(j.id);
--    }, [j?.id, j?.readAt, A]));
-+    }, [j?.id, j?.readAt, A]),
+       M?.id == null || M.readAt != null || j(M.id);
+-    }, [M?.id, M?.readAt, j]));
++    }, [M?.id, M?.readAt, j]),
 +    (0, Z.useEffect)(() => {
 +      let t = codexHostedWindowTitle?.trim();
 +      t && (document.title = `${t} | Codex`);
 +    }, [codexHostedWindowTitle]));
-   let P = ea(),
-     { agentMode: F } = If({ conversationId: e, hostId: l }),
-     I = c ? ve(c) : null,
+   let F = ka(),
+     { agentMode: I } = _g({ conversationId: e, hostId: u }),
+     L = l ? Oe(l) : null,
