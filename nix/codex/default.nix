@@ -79,6 +79,42 @@ flake-utils.lib.eachSystem systems (
           pkgs.pkg-config
         ];
       };
+      "webrtc-sys" = attrs: {
+        LK_CUSTOM_WEBRTC =
+          let
+            info = {
+              aarch64-darwin = {
+                triple = "mac-arm64-release";
+                hash = "sha256-eb5cwV5uBjPEOA4z4XLX6/Gm3Og+ngmXYdYQPw1+tsE=";
+              };
+              x86_64-darwin = {
+                triple = "mac-x64-release";
+                hash = "sha256-COQh7Wa0KEmM1qUTMMldmP7WncRKPBNJ7RaiRowUyV8=";
+              };
+              aarch64-linux = {
+                triple = "linux-arm64-release";
+                hash = "sha256-QBPVPoY+RwQt1Ztnsb2EltoER6yEw9cMFwSZQG8Tqgs=";
+              };
+              x86_64-linux = {
+                triple = "linux-x64-release";
+                hash = "sha256-89SaZMN+qJmvUt3GhfUx8Kvi+3VSiqTa4lKtqqA77Mw=";
+              };
+            };
+            selected = info.${system};
+            zip = pkgs.fetchurl {
+              url = "https://github.com/livekit/rust-sdks/releases/download/webrtc-24f6822-2/webrtc-${selected.triple}.zip";
+              hash = selected.hash;
+            };
+            unpacked = pkgs.runCommand "webrtc-${selected.triple}" { nativeBuildInputs = [ pkgs.unzip ]; } ''
+              mkdir -p "$out"
+              unzip -q -o ${zip} -d "$out"
+            '';
+          in
+          "${unpacked}/${selected.triple}";
+        postInstall = (attrs.postInstall or "") + ''
+          rm -rf "$lib/lib/webrtc-sys.out/cxxbridge"
+        '';
+      };
     };
     codexCrates = import ./Cargo.nix {
       inherit pkgs;
