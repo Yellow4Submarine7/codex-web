@@ -16,6 +16,12 @@ flake-utils.lib.eachSystem systems (
   let
     pkgs = import nixpkgs { inherit system; };
     version = "0.125.0-alpha.3";
+    src = pkgs.fetchFromGitHub {
+      owner = "openai";
+      repo = "codex";
+      rev = "rust-v${version}";
+      hash = "sha256-vVkwAD2vbRykfIlfxc4CyzIf/8UF94V5fKhJbAE9mog=";
+    };
     codexCrateOverrides = pkgs.defaultCrateOverrides // {
       aws-lc-sys = attrs: {
         nativeBuildInputs = (attrs.nativeBuildInputs or [ ]) ++ [
@@ -24,6 +30,7 @@ flake-utils.lib.eachSystem systems (
         ];
       };
       codex-linux-sandbox = attrs: {
+        CODEX_BWRAP_SOURCE_DIR = "${src}/codex-rs/vendor/bubblewrap";
         nativeBuildInputs = (attrs.nativeBuildInputs or [ ]) ++ [ pkgs.pkg-config ];
         buildInputs = (attrs.buildInputs or [ ]) ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.libcap ];
       };
@@ -65,14 +72,7 @@ flake-utils.lib.eachSystem systems (
     };
     codexCrates = import ./Cargo.nix {
       inherit pkgs;
-      workspaceSrc = "${
-        pkgs.fetchFromGitHub {
-          owner = "openai";
-          repo = "codex";
-          rev = "rust-v${version}";
-          hash = "sha256-vVkwAD2vbRykfIlfxc4CyzIf/8UF94V5fKhJbAE9mog=";
-        }
-      }/codex-rs";
+      workspaceSrc = "${src}/codex-rs";
       buildRustCrateForPkgs =
         pkgs:
         pkgs.buildRustCrate.override {
