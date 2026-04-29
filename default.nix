@@ -29,21 +29,10 @@ flake-utils.lib.eachSystem systems (
 
       packages = [
         codex
-        pkgs.cargo
-        pkgs.crate2nix
         pkgs.nodejs
-        pkgs.rustc
         pkgs.yarn
         pkgs.unzip
         pkgs.patch
-      ];
-    };
-
-    devShells.crate2nix = pkgs.mkShell {
-      packages = [
-        pkgs.cargo
-        pkgs.crate2nix
-        pkgs.rustc
       ];
     };
 
@@ -52,7 +41,7 @@ flake-utils.lib.eachSystem systems (
         nodeSources = pkgs.srcOnly pkgs.nodejs;
         yarnOfflineCache = pkgs.fetchYarnDeps {
           yarnLock = ./yarn.lock;
-          hash = "sha256-PPymV+XLEGj4JtqKUa+ctQIjnvbOQ0sFpTuRd34FEbM=";
+          hash = "sha256-Vmgjs3QU++pMriU0ykOURwUUoRpwymtyE90xJHoXhGE=";
         };
 
         betterSqlite3Native = pkgs.stdenv.mkDerivation {
