@@ -45,7 +45,7 @@ flake-utils.lib.eachSystem systems (
         betterSqlite3Native = pkgs.stdenv.mkDerivation {
           pname = "better-sqlite3-native";
           version = "12.9.0";
-          src = pkgs.mand "better-sqlite3-build-src" { nativeBuildInputs = [ pkgs.jq ]; } ''
+          src = pkgs.runCommand "better-sqlite3-build-src" { nativeBuildInputs = [ pkgs.jq ]; } ''
             mkdir -p "$out"
 
             ${pkgs.lib.getExe pkgs.jq} '{
