@@ -15,24 +15,24 @@ flake-utils.lib.eachSystem systems (
   system:
   let
     pkgs = import nixpkgs { inherit system; };
-    version = "0.126.0-alpha.8";
+    version = "0.126.0-alpha.15";
     platform =
       {
         aarch64-darwin = {
           npm = "darwin-arm64";
-          hash = "sha256-aAlnzgJ8CSfBjnY0xzky5Ng0N+hh9ltHWG88rJCOl4s=";
+          hash = "sha256-/U3Hio/m1An1S7H31k1uAqU7HW7JiceTucks8Lyg8/k=";
         };
         x86_64-darwin = {
           npm = "darwin-x64";
-          hash = "sha256-2ixnJ3wbBYSP+Bqf2vk0Fr3wkFrVl1eHzLHyppFQBmM=";
+          hash = "sha256-396lxjGi625YY3P0z3B9BSg2Umwn65WZ8dGcRqXbZR8=";
         };
         aarch64-linux = {
           npm = "linux-arm64";
-          hash = "sha256-Gy+o6G7xfsOPsisDnvmVZouj3vpAOBE4n2o7tSiixLs=";
+          hash = "sha256-VCIHy5xuZgE7Zpk4Eg8TiZZIoBJSpqlzTTZski2BJTY=";
         };
         x86_64-linux = {
           npm = "linux-x64";
-          hash = "sha256-KVX/Pxq0NElDDm02DtCMLulESsL899YbtECMBZtf+8A=";
+          hash = "sha256-O5NXigt3Z+bE0a8ivUb1zIKGA261VgPp1YOAw8HskQ4=";
         };
       }
       .${system};
@@ -43,9 +43,9 @@ flake-utils.lib.eachSystem systems (
   in
   {
     packages.codex =
-      pkgs.runCommand "codex-app-server-${version}"
+      pkgs.runCommand "codex-${version}"
         {
-          pname = "codex-app-server";
+          pname = "codex";
           inherit src version;
           meta.mainProgram = "codex";
         }
