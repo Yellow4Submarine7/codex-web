@@ -112,7 +112,6 @@ flake-utils.lib.eachSystem systems (
             pkgs.yarn
             pkgs.unzip
             pkgs.patch
-            pkgs.makeWrapper
           ];
 
           preBuild = ''
@@ -134,8 +133,6 @@ flake-utils.lib.eachSystem systems (
             addon="$out/lib/node_modules/codex-web/node_modules/better-sqlite3"
             rm -rf "$addon/build"
             ln -s ${betterSqlite3Native}/build "$addon/build"
-
-            wrapProgram "$out/bin/codex-web"
           '';
         };
 
