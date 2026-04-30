@@ -6,7 +6,10 @@ asar extract "scratch/Codex.app/Contents/Resources/app.asar" "scratch/asar"
 cp assets/* scratch/asar/webview/
 PWA_SOURCE_ICON="scratch/asar/webview/assets/app-D0g8sCle.png"
 PWA_TARGET_ICON="scratch/asar/webview/assets/pwa-icon-512.png"
-magick "$PWA_SOURCE_ICON" -resize 410x410 -background white -gravity center -extent 512x512 -alpha remove -alpha off "PNG24:$PWA_TARGET_ICON"
+PWA_ICON_SIZE=512
+PWA_TOTAL_PADDING_PERCENT=25
+PWA_CONTENT_SIZE=$((PWA_ICON_SIZE * (100 - PWA_TOTAL_PADDING_PERCENT) / 100))
+magick "$PWA_SOURCE_ICON" -resize "${PWA_CONTENT_SIZE}x${PWA_CONTENT_SIZE}" -background white -gravity center -extent "${PWA_ICON_SIZE}x${PWA_ICON_SIZE}" -alpha remove -alpha off "PNG24:$PWA_TARGET_ICON"
 if [[ -n "${DEV:-}" ]]; then
   prettier --ignore-path /dev/null --ignore-unknown --write "scratch/asar"
 else
