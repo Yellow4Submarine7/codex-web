@@ -1,6 +1,6 @@
 # codex-web
 
-host codex desktop on a machine you control and reach it from a browser.
+a browser frontend for codex desktop, running on a machine you control.
 
 ## motivation
 
