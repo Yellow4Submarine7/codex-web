@@ -61,9 +61,8 @@ codex login --device-auth
 
 ### proxying to app-server (advanced usage)
 
-it is often desirable to run app server separately and use `codex-web` as one
-of many frontends to a long-lived app server decoupled from the lifespan of any
-client (in case, for example, the client crashes)
+it’s often useful to run the app server separately, so a crash or restart of
+codex-web doesn’t interrupt the codex process executing commands.
 
 it's possible to hook codex-web up to an already-running app server using the
 `codex_remote_proxy` script.
@@ -87,9 +86,13 @@ nix shell github:0xcaff/codex-web github:0xcaff/codex-web#codex_remote_proxy -c 
 
 ## security
 
-`codex-web` is not intended to be exposed directly to the public internet.
-treat anyone who can reach the `codex-web` server as someone who can operate
-codex on the host machine as that user.
+run `codex-web` only on a trusted network. treat anyone who can reach the
+`codex-web` server as someone who can operate codex on the host machine as the
+same user running the server.
+
+if you need authn or authz, implement it outside of `codex-web`: proxy it through
+wireguard, tailscale, or an ssh tunnel, or put an authentication gateway or
+reverse proxy in front.
 
 someone with access to the web ui may be able to:
 
@@ -101,25 +104,23 @@ someone with access to the web ui may be able to:
   consume usage quota or billing credits, and may expose account metadata shown
   by the app or cli, such as name or email address.
 
-run `codex-web` only on a trusted network. do not expose it directly to the
-internet. prefer access through wireguard, tailscale, or an ssh tunnel, and put
-an authentication gateway or reverse proxy in front if other people or devices
-can reach it.
+## roadmap
 
-## broken but want to fix
+some parts of the desktop experience are not wired up yet:
 
-- terminal
-- git worker is not hooked up yet
-- browser panel, which might be possible to rebuild around iframes
-- computer use on linux. this will be a very powerful feature
-- probably more (file an issue please)
+- terminal support
+- git worker integration
+- browser panel support, likely rebuilt around iframes
+- computer use on linux, which could become a very powerful feature
+- whatever else people find and file issues for
 
 ## issues welcome
 
-is there something broken you'd like to see fixed? file an issue!
+if something is broken, missing, or rough around the edges, please file an
+issue.
 
-using this in an interesting way and want to share? post on X and tag me
-(@0xcaff).
+using `codex-web` in an interesting way? post about it on x and tag me
+[@0xcaff](https://x.com/0xcaff).
 
-using this at a company and need something more than offered here? send me an
-email and we can talk.
+using this at a company and need something more tailored? email me and we can
+talk.
