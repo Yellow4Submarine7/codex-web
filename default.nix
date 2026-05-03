@@ -29,9 +29,7 @@ flake-utils.lib.eachSystem systems (
 
       packages = [
         codex
-        pkgs.imagemagick
         pkgs.nodejs
-        pkgs.yarn
         pkgs.unzip
         pkgs.patch
       ];
@@ -40,34 +38,28 @@ flake-utils.lib.eachSystem systems (
     packages =
       let
         nodeSources = pkgs.srcOnly pkgs.nodejs;
-        yarnOfflineCache = pkgs.fetchYarnDeps {
-          yarnLock = ./yarn.lock;
-          hash = "sha256-64ywtaREPlJcm+o2ab/oAognbVJa5L/x365M+Y165U0=";
+        npmDeps = pkgs.importNpmLock {
+          npmRoot = ./.;
         };
 
         betterSqlite3Native = pkgs.stdenv.mkDerivation {
           pname = "better-sqlite3-native";
           version = "12.9.0";
-          src = pkgs.runCommand "better-sqlite3-build-src" { nativeBuildInputs = [ pkgs.jq ]; } ''
-            mkdir -p "$out"
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./package.json
+              ./package-lock.json
+            ];
+          };
 
-            ${pkgs.lib.getExe pkgs.jq} '{
-              name: "better-sqlite3-build",
-              version: "0.0.0",
-              private: true,
-              dependencies: {
-                "better-sqlite3": .dependencies["better-sqlite3"]
-              }
-            }' ${./package.json} > "$out/package.json"
+          inherit npmDeps;
 
-            cp ${./yarn.lock} "$out/yarn.lock"
-          '';
-          inherit yarnOfflineCache;
+          npmRebuildFlags = [ "--ignore-scripts" ];
 
           nativeBuildInputs = [
-            pkgs.yarnConfigHook
+            pkgs.importNpmLock.npmConfigHook
             pkgs.nodejs
-            pkgs.yarn
             pkgs.python3
             pkgs.removeReferencesTo
           ]
@@ -96,22 +88,21 @@ flake-utils.lib.eachSystem systems (
         };
       in
       {
-        default = pkgs.stdenv.mkDerivation {
+        default = pkgs.buildNpmPackage {
           HOSTED_CODEX_APP_ZIP = codexZip;
 
           pname = "codex-web";
           version = "1.0.0";
           src = ./.;
 
-          inherit yarnOfflineCache;
+          inherit npmDeps;
+
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+          npmBuildScript = "build";
+          npmRebuildFlags = [ "--ignore-scripts" ];
+          npmPruneFlags = [ "--ignore-scripts" ];
 
           nativeBuildInputs = [
-            pkgs.yarnConfigHook
-            pkgs.yarnBuildHook
-            pkgs.yarnInstallHook
-            pkgs.imagemagick
-            pkgs.nodejs
-            pkgs.yarn
             pkgs.unzip
             pkgs.patch
           ];
@@ -124,8 +115,8 @@ flake-utils.lib.eachSystem systems (
             # Keep only extracted asar artifacts for packaging.
             rm -rf scratch/Codex.app
 
-            # yarn pack drops any directory named node_modules, so rename the
-            # nested asar tree in-place to keep it in the package output.
+            # npm pack drops directories named node_modules, so rename the nested
+            # asar tree in-place to keep it in the package output.
             mv scratch/asar/node_modules scratch/asar/asar_node_modules
           '';
 
