@@ -1,14 +1,38 @@
-export function mapBrowserPathToInitialRoute(pathname: string): string {
-  const match = pathname.match(/^\/thread\/([^/]+)$/);
-  if (!match) {
-    return "/";
+export function mapBrowserPathToInitialRoute(pathname: string, search: string) {
+  if (pathname === "/share/receive" && search) {
+    const params = new URLSearchParams(search);
+
+    const prompt = ["title", "text", "url"]
+      .flatMap((name) => {
+        const value = params.get(name);
+        return value === null ? [] : [`${name}: ${value}`];
+      })
+      .join("\n");
+
+    return {
+      memoryPath: prompt
+        ? `/?${new URLSearchParams({ prompt }).toString()}`
+        : "/",
+      browserPath: "/",
+    };
   }
 
-  try {
-    return `/local/${decodeURIComponent(match[1])}`;
-  } catch {
-    return "/";
+  return {
+    memoryPath: mapBrowserPathToRoute(pathname),
+  };
+}
+
+function mapBrowserPathToRoute(pathname: string): string {
+  const match = pathname.match(/^\/thread\/([^/]+)$/);
+  if (match) {
+    try {
+      return `/local/${decodeURIComponent(match[1])}`;
+    } catch {
+      return "/";
+    }
   }
+
+  return "/";
 }
 
 export function mapMemoryPathToBrowserPath(pathname: string) {
@@ -36,7 +60,5 @@ export function dispatchNavigateToRoute(path: string): void {
 }
 
 window.addEventListener("popstate", () => {
-  dispatchNavigateToRoute(
-    mapBrowserPathToInitialRoute(window.location.pathname),
-  );
+  dispatchNavigateToRoute(mapBrowserPathToRoute(window.location.pathname));
 });
