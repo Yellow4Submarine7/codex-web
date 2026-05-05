@@ -12,8 +12,8 @@ files, credentials, and tools already live.
 
 codex-web brings codex desktop to the browser while keeping the backend on a
 machine you control (a linux box in the cloud, your home lab, or a desktop / mac
-mini). agents keep running after your laptop closes, and you can reconnect from
-any device with a browser.
+mini). agents keep running after your laptop closes. you can reconnect from any
+device with a browser.
 
 this project aims to be as thin a wrapper as possible to ensure upstream changes
 to the codex desktop app can be integrated quickly.
