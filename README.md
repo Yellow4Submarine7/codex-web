@@ -50,6 +50,10 @@ can fail with `TypeError: n is not iterable`.
 the patch lives in `patches/webview-prompt-history-object.patch` and is applied
 by `scripts/prepare_asar` whenever the desktop app asar is unpacked and patched.
 
+this fork also adds a browser-side download action for generated conversation
+resources. files served by the codex-web host can be downloaded directly from the
+web ui, which works even when the browser is running on a different device.
+
 when running a local checkout, point your launcher or service manager at this
 repository and serve it at <http://127.0.0.1:8214>.
 
@@ -123,6 +127,7 @@ someone with access to the web ui may be able to:
 - working today:
   - subagents
   - inline images
+  - browser downloads for generated resources
   - editor sidepanel
   - transcription
 
