@@ -1,0 +1,15 @@
+--- a/webview/assets/index-D-3V455n.js
++++ b/webview/assets/index-D-3V455n.js
+@@ -66001,8 +66001,10 @@
+   t[8] !== n || t[9] !== r
+     ? ((u = (e) => {
+         if (e.trim().length === 0) return;
+-        let t = [...n, e];
+-        r(t.length <= NH ? t : t.slice(t.length - NH));
++        let i = Array.isArray(n) ? n : Array.isArray(n?.global) ? n.global : [],
++          t = [...i, e],
++          a = t.length <= NH ? t : t.slice(t.length - NH);
++        r(Array.isArray(n) ? a : { ...n, global: a });
+       }),
+       (t[8] = n),
+       (t[9] = r),

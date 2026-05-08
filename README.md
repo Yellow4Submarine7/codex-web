@@ -40,6 +40,27 @@ nix run github:0xcaff/codex-web
 
 then open <http://127.0.0.1:8214> in a browser.
 
+### local maintained fork
+
+this local fork includes a compatibility patch for newer codex desktop builds
+where `prompt-history` is stored as an object keyed by `global` and thread id,
+instead of only as an array. without this patch, sending a prompt from the web ui
+can fail with `TypeError: n is not iterable`.
+
+the patch lives in `patches/webview-prompt-history-object.patch` and is applied
+by `scripts/prepare_asar` whenever the desktop app asar is unpacked and patched.
+
+when running a local checkout, point your launcher or service manager at this
+repository and serve it at <http://127.0.0.1:8214>.
+
+to rebuild and restart a launch agent based local service:
+
+```bash
+cd /path/to/codex-web
+npm run prepare
+launchctl kickstart -k "gui/$(id -u)/<launch-agent-id>"
+```
+
 ### sign in
 
 ensure the codex cli on the host machine is signed in before starting the
