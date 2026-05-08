@@ -11,6 +11,7 @@ import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import { installModuleAliasHook } from "./module";
 import { glob } from "glob";
+import { registerDownloadRoute } from "./download";
 
 type ServerOptions = {
   host: string;
@@ -291,6 +292,8 @@ async function startIpcBridgeServer(options: ServerOptions): Promise<void> {
 
     return reply.send({ files });
   });
+
+  registerDownloadRoute(app);
 
   await app.register(fastifyStatic, {
     root: "/",

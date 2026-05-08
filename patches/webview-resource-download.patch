@@ -1,0 +1,66 @@
+--- a/webview/assets/index-D-3V455n.js
++++ b/webview/assets/index-D-3V455n.js
+@@ -118368,6 +118368,18 @@
+     return e;
+   }
+ }
++function cweDownloadFile(e) {
++  let t = new URL(`/__backend/download`, window.location.href);
++  t.searchParams.set(`path`, e);
++  let n = document.createElement(`a`);
++  n.href = t.toString();
++  n.download = Zt(e);
++  n.rel = `noopener`;
++  n.style.display = `none`;
++  document.body.append(n);
++  n.click();
++  n.remove();
++}
+ var Wde = 256 * 1024;
+ function Gde(e) {
+   let t = (0, Q.c)(64),
+@@ -118496,7 +118508,7 @@
+       (t[28] = M),
+       (t[29] = L));
+   let R = LZ,
+-    z = x.length === 0 && C == null,
++    z = !1,
+     B;
+   t[30] !== i || t[31] !== y
+     ? ((B = (e) =>
+@@ -118563,13 +118575,28 @@
+       (t[36] = x),
+       (t[37] = H))
+     : (H = t[37]);
+-  let U;
+-  t[38] !== V || t[39] !== H
+-    ? ((U = (0, $.jsxs)($.Fragment, { children: [V, H] })),
+-      (t[38] = V),
+-      (t[39] = H),
+-      (t[40] = U))
+-    : (U = t[40]);
++  let U = (0, $.jsxs)($.Fragment, {
++    children: [
++      V,
++      H,
++      x.length > 0 || C != null ? (0, $.jsx)(jm.Separator, {}) : null,
++      (0, $.jsx)(jm.Item, {
++        onSelect: () => {
++          cweDownloadFile(i);
++        },
++        children: [
++          (0, $.jsx)(jm.ItemIcon, {
++            children: (0, $.jsx)(Bg, { className: `icon-sm` }),
++          }),
++          (0, $.jsx)(Y, {
++            id: `localConversation.endResource.download`,
++            defaultMessage: `Download`,
++            description: `Dropdown item for downloading a conversation resource in the browser`,
++          }),
++        ],
++      }),
++    ],
++  });
+   let W;
+   t[41] === O
+     ? (W = t[42])
